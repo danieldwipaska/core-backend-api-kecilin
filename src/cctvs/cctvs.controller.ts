@@ -1,15 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { CctvsService } from './cctvs.service';
-import { CreateCctvDto } from './dto/create-cctv.dto';
-import { UpdateCctvDto } from './dto/update-cctv.dto';
+import { Prisma } from '@prisma/client';
 
 @Controller('cctvs')
 export class CctvsController {
   constructor(private readonly cctvsService: CctvsService) {}
 
   @Post()
-  create(@Body() createCctvDto: CreateCctvDto) {
-    return this.cctvsService.create(createCctvDto);
+  create(@Body() data: Prisma.CctvCreateInput) {
+    return this.cctvsService.create(data);
   }
 
   @Get()
@@ -19,16 +26,16 @@ export class CctvsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.cctvsService.findOne(+id);
+    return this.cctvsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCctvDto: UpdateCctvDto) {
-    return this.cctvsService.update(+id, updateCctvDto);
+  update(@Param('id') id: string, @Body() data: Prisma.CctvUpdateInput) {
+    return this.cctvsService.update(id, data);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.cctvsService.remove(+id);
+    return this.cctvsService.remove(id);
   }
 }

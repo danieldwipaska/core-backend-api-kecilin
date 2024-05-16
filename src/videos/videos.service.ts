@@ -1,26 +1,102 @@
-import { Injectable } from '@nestjs/common';
-import { CreateVideoDto } from './dto/create-video.dto';
-import { UpdateVideoDto } from './dto/update-video.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, Videos } from '@prisma/client';
+import Response from 'src/interfaces/response.interface';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class VideosService {
-  create(createVideoDto: CreateVideoDto) {
-    return 'This action adds a new video';
+  constructor(private prisma: PrismaService) {}
+  async create(data: Prisma.VideosCreateInput): Promise<Response<Videos>> {
+    try {
+      const video = await this.prisma.videos.create({
+        data,
+      });
+
+      return {
+        statusCode: 201,
+        message: 'CREATED',
+        data: video,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
-  findAll() {
-    return `This action returns all videos`;
+  async findAll(): Promise<Response<Videos[]>> {
+    try {
+      const videos = await this.prisma.videos.findMany();
+      if (!videos.length) throw new NotFoundException('Video Not Found');
+
+      return {
+        statusCode: 200,
+        message: 'OK',
+        data: videos,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} video`;
+  async findOne(id: string): Promise<Response<Videos>> {
+    try {
+      const video = await this.prisma.videos.findUnique({ where: { id } });
+      if (!video) throw new NotFoundException('Video Not Found');
+
+      return {
+        statusCode: 200,
+        message: 'OK',
+        data: video,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
-  update(id: number, updateVideoDto: UpdateVideoDto) {
-    return `This action updates a #${id} video`;
+  async update(
+    id: string,
+    data: Prisma.VideosUpdateInput,
+  ): Promise<Response<Videos>> {
+    try {
+      const video = await this.prisma.videos.findUnique({ where: { id } });
+      if (!video) throw new NotFoundException('Video Not Found');
+
+      try {
+        const updatedVideo = await this.prisma.videos.update({
+          where: { id },
+          data,
+        });
+
+        return {
+          statusCode: 200,
+          message: 'OK',
+          data: updatedVideo,
+        };
+      } catch (error) {
+        throw error;
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} video`;
+  async remove(id: string): Promise<Response<Videos>> {
+    try {
+      const video = await this.prisma.videos.findUnique({ where: { id } });
+      if (!video) throw new NotFoundException('Video Not Found');
+
+      try {
+        await this.prisma.videos.delete({ where: { id } });
+
+        return {
+          statusCode: 200,
+          message: 'OK',
+          data: video,
+        };
+      } catch (error) {
+        throw error;
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 }

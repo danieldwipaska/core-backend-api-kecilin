@@ -1,26 +1,100 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCctvDto } from './dto/create-cctv.dto';
-import { UpdateCctvDto } from './dto/update-cctv.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Cctv, Prisma } from '@prisma/client';
+import Response from 'src/interfaces/response.interface';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class CctvsService {
-  create(createCctvDto: CreateCctvDto) {
-    return 'This action adds a new cctv';
+  constructor(private prisma: PrismaService) {}
+  async create(data: Prisma.CctvCreateInput): Promise<Response<Cctv>> {
+    try {
+      const cctv = await this.prisma.cctv.create({
+        data,
+      });
+      return {
+        statusCode: 201,
+        message: 'CREATED',
+        data: cctv,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
-  findAll() {
-    return `This action returns all cctvs`;
+  async findAll(): Promise<Response<Cctv[]>> {
+    try {
+      const cctvs = await this.prisma.cctv.findMany();
+      if (!cctvs.length) throw new NotFoundException('CCTV Not Found');
+
+      return {
+        statusCode: 200,
+        message: 'OK',
+        data: cctvs,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} cctv`;
+  async findOne(id: string): Promise<Response<Cctv>> {
+    try {
+      const cctv = await this.prisma.cctv.findUnique({ where: { id } });
+      if (!cctv) throw new NotFoundException('CCTV Not Found');
+
+      return {
+        statusCode: 200,
+        message: 'OK',
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
-  update(id: number, updateCctvDto: UpdateCctvDto) {
-    return `This action updates a #${id} cctv`;
+  async update(
+    id: string,
+    data: Prisma.CctvUpdateInput,
+  ): Promise<Response<Cctv>> {
+    try {
+      const cctv = await this.prisma.cctv.findUnique({ where: { id } });
+      if (!cctv) throw new NotFoundException('CCTV Not Found');
+
+      try {
+        const updatedCctv = await this.prisma.cctv.update({
+          where: { id },
+          data,
+        });
+
+        return {
+          statusCode: 200,
+          message: 'OK',
+          data: updatedCctv,
+        };
+      } catch (error) {
+        throw error;
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} cctv`;
+  async remove(id: string): Promise<Response<Cctv>> {
+    try {
+      const cctv = await this.prisma.cctv.findUnique({ where: { id } });
+      if (!cctv) throw new NotFoundException('CCTV Not Found');
+
+      try {
+        await this.prisma.cctv.delete({ where: { id } });
+
+        return {
+          statusCode: 200,
+          message: 'OK',
+          data: cctv,
+        };
+      } catch (error) {
+        throw error;
+      }
+    } catch (error) {
+      throw error;
+    }
   }
 }
