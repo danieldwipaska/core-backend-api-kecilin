@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { VideosService } from './videos.service';
 import { Prisma } from '@prisma/client';
@@ -20,6 +21,23 @@ export class VideosController {
   }
 
   @Get()
+  findAllWithModification(
+    @Query('skip') skip: string,
+    @Query('take') take: string,
+    @Query('search') search: string,
+    @Query('filter') filter: string,
+    @Query('sort') sort: 'asc' | 'desc',
+  ) {
+    return this.videosService.findAllWithModification({
+      skip: Number(skip),
+      take: Number(take),
+      search,
+      filter,
+      sort,
+    });
+  }
+
+  @Get('all')
   findAll() {
     return this.videosService.findAll();
   }

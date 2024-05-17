@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma, Videos } from '@prisma/client';
 import Response from 'src/interfaces/response.interface';
 import { PrismaService } from 'src/prisma.service';
@@ -22,10 +26,49 @@ export class VideosService {
     }
   }
 
+  // PAGINATION, FILTER, SORT, SEARCH
+  async findAllWithModification(query: {
+    skip?: number;
+    take?: number;
+    search?: string;
+    filter?: string;
+    sort?: 'asc' | 'desc';
+  }): Promise<Response<Videos[]>> {
+    const { skip, take, search, filter, sort } = query;
+    if (isNaN(skip) || isNaN(take))
+      throw new BadRequestException('Invalid Query');
+
+    // Context:
+    // Filtering cctvId
+    // Searching filename
+    // Sorting createdAt
+
+    try {
+      const videos = await this.prisma.videos.findMany({
+        skip,
+        take,
+        where: {
+          AND: [{ cctvId: filter }, { filename: { contains: search } }],
+        },
+        orderBy: {
+          createdAt: sort,
+        },
+      });
+
+      return {
+        statusCode: 200,
+        message: 'OK',
+        data: videos,
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async findAll(): Promise<Response<Videos[]>> {
     try {
       const videos = await this.prisma.videos.findMany();
-      if (!videos.length) throw new NotFoundException('Video Not Found');
+      if (!videos.length) throw new NotFoundException('Videos Not Found');
 
       return {
         statusCode: 200,
